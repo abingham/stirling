@@ -1,8 +1,8 @@
 import operator
 from collections.abc import Hashable, Iterable
 from functools import reduce
-from itertools import combinations
-from math import factorial
+from itertools import combinations, islice
+from math import ceil, factorial
 
 # TODO: Ensure that we work with non-orderable items. If we don't, we can do so by assigning
 # an indexing to the elements (arbitrarily) and de-referencing those indexes after partitioning.
@@ -28,9 +28,13 @@ def _stirling(elements: set, num_sets: int):
     # The largest group we deal with is the one that forces all other groups to be size 1.
     group_size = num_elements - (num_sets - 1)
 
-    # The smallest group size is half of the number of elements.
-    # TODO: We have this special-casing of num_sets == 1, and I don't like it. What's the real math here?
-    min_group_size = num_elements if num_sets == 1 else num_elements / 2
+    # The smallest group size is ceil(num-elements / num_sets).
+    #
+    # TODO: This almost works. We still have the problem where there are equal-sized groups in the partitioning, e.g.
+    # 6-into-2. The lead group will end up duplicating things already produced by the recursive call. Memoization? Smarter
+    # termination of the looping over combinations? Not sure yet. Take a look at limiting the looping (e.g. with islice) of
+    # `combinations()` below.
+    min_group_size = ceil(num_elements / num_sets)
 
     # At any level of recursion, we deal with all groups up to half the size of the total
     # input. Smaller groups are dealt with in recursive calls.
