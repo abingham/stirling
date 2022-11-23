@@ -28,9 +28,13 @@ def _stirling(elements: set, num_sets: int):
     # The largest group we deal with is the one that forces all other groups to be size 1.
     group_size = num_elements - (num_sets - 1)
 
+    # The smallest group size is half of the number of elements.
+    # TODO: We have this special-casing of num_sets == 1, and I don't like it. What's the real math here?
+    min_group_size = num_elements if num_sets == 1 else num_elements / 2
+
     # At any level of recursion, we deal with all groups up to half the size of the total
     # input. Smaller groups are dealt with in recursive calls.
-    while group_size >= num_elements / 2:
+    while group_size >= min_group_size:
         assert group_size != 0
 
         # The lead group will be all combinations of the current group size
