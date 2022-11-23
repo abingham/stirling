@@ -36,6 +36,9 @@ def _stirling(elements: set, num_sets: int):
     # `combinations()` below.
     min_group_size = ceil(num_elements / num_sets)
 
+    # TODO: Problem. We are not preventing recursive calls from making groups that are larger than min-group-size. We need
+    # to throttle that. 
+
     # At any level of recursion, we deal with all groups up to half the size of the total
     # input. Smaller groups are dealt with in recursive calls.
     while group_size >= min_group_size:
