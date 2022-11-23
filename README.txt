@@ -1,0 +1,1 @@
+Doodling around with Stirling numbers.
