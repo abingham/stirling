@@ -1,32 +1,57 @@
 import operator
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 from functools import reduce
 from itertools import combinations
 from math import factorial
 
+# TODO: Ensure that we work with non-orderable items. If we don't, we can do so by assigning
+# an indexing to the elements (arbitrarily) and de-referencing those indexes after partitioning.
 
-def stirling(elements: Iterable, num_sets: int):
+
+def stirling(elements: Iterable[Hashable], num_sets: int):
+    """Generate the Stirling (second type) partitions for some elements.
+
+    Args:
+        elements (Iterable): The elements to partition.
+        num_sets (int): The number of sets to partition into.
+
+    Yields:
+        tuple[tuple[Hashable]]: _description_
+    """
+    # All this really does is convert `elements` into a set and call the recursive solver.
     yield from _stirling(set(elements), num_sets)
 
 
 def _stirling(elements: set, num_sets: int):
     num_elements = len(elements)
+    
+    # The largest group we deal with is the one that forces all other groups to be size 1.
     group_size = num_elements - (num_sets - 1)
 
+    # At any level of recursion, we deal with all groups up to half the size of the total
+    # input. Smaller groups are dealt with in recursive calls.
     while group_size >= num_elements / 2:
         assert group_size != 0
+
+        # The lead group will be all combinations of the current group size
         for lead_group in combinations(elements, group_size):
+            # We use the remaining elements (i.e. those not in the lead group) in the recursion.
             remaining_elements = elements.difference(lead_group)
+
+            # If there are remaining elements to be partitions, we recurse.
             if num_sets > 1:
                 for tail_groups in _stirling(remaining_elements, num_sets - 1):
                     yield (lead_group, ) + tail_groups
+
+            # Otherwise we're at the base case and terminate recursion.
             else:
                 yield lead_group,
+
         group_size -= 1
 
 
 def num_combinations(n, k):
-    "Calculate n choose k"
+    "Calculate the number of ways to choose k elements from n." 
     return factorial(n) / (factorial(k) * factorial(n - k))
 
 
