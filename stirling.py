@@ -22,11 +22,15 @@ def stirling(elements: Iterable[Hashable], num_sets: int):
     yield from _stirling(set(elements), num_sets)
 
 
-def _stirling(elements: set, num_sets: int):
+def _stirling(elements: set, num_sets: int, max_group_size=None):
     num_elements = len(elements)
     
     # The largest group we deal with is the one that forces all other groups to be size 1.
     group_size = num_elements - (num_sets - 1)
+
+    # But the caller may require that we only deal with groups up to a certain size.
+    if max_group_size is not None:
+        group_size = min(group_size, max_group_size)
 
     # The smallest group size is ceil(num-elements / num_sets).
     #
@@ -36,22 +40,19 @@ def _stirling(elements: set, num_sets: int):
     # `combinations()` below.
     min_group_size = ceil(num_elements / num_sets)
 
-    # TODO: Problem. We are not preventing recursive calls from making groups that are larger than min-group-size. We need
-    # to throttle that. 
-
     # At any level of recursion, we deal with all groups up to half the size of the total
     # input. Smaller groups are dealt with in recursive calls.
     while group_size >= min_group_size:
         assert group_size != 0
 
         # The lead group will be all combinations of the current group size
-        for lead_group in combinations(elements, group_size):
+        for lead_group in islice(combinations(elements, group_size), stirling_count(num_elements, group_size)):
             # We use the remaining elements (i.e. those not in the lead group) in the recursion.
             remaining_elements = elements.difference(lead_group)
 
             # If there are remaining elements to be partitions, we recurse.
             if num_sets > 1:
-                for tail_groups in _stirling(remaining_elements, num_sets - 1):
+                for tail_groups in _stirling(remaining_elements, num_sets - 1, group_size):
                     yield (lead_group, ) + tail_groups
 
             # Otherwise we're at the base case and terminate recursion.

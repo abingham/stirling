@@ -26,6 +26,17 @@ def test_2_elements_1_group():
     assert actual == expected
 
 
+def test_2_elements_2_group():
+    elements = [0, 1]
+    actual = tuple(stirling(elements, num_sets=2))
+    # yapf: disable
+    expected = (
+        ((0,), (1,) ),
+    )
+    # yapf: enable
+    assert actual == expected
+
+
 def test_six_choose_three():
     elements = [1, 2, 3, 4, 5, 6]
     expected_count = 90
