@@ -48,7 +48,7 @@ def test_six_choose_three():
 @ST.composite
 def elements_and_num_partitions(draw, elements=ST.integers()):
     values = draw(
-        ST.sets(elements, min_size=1, max_size=12)
+        ST.sets(elements, min_size=1, max_size=10)
     )  # This max_size is important because if it's too large things can take a loooong time
     num_groups = draw(ST.integers(min_value=1, max_value=len(values)))
     return (values, num_groups)

@@ -24,7 +24,8 @@ def stirling(elements: Iterable[Hashable], num_sets: int):
 
 def _stirling(elements: set, num_sets: int, max_group_size=None):
     num_elements = len(elements)
-    
+    to_yield = stirling_count(num_elements, num_sets)
+
     # The largest group we deal with is the one that forces all other groups to be size 1.
     group_size = num_elements - (num_sets - 1)
 
@@ -33,11 +34,6 @@ def _stirling(elements: set, num_sets: int, max_group_size=None):
         group_size = min(group_size, max_group_size)
 
     # The smallest group size is ceil(num-elements / num_sets).
-    #
-    # TODO: This almost works. We still have the problem where there are equal-sized groups in the partitioning, e.g.
-    # 6-into-2. The lead group will end up duplicating things already produced by the recursive call. Memoization? Smarter
-    # termination of the looping over combinations? Not sure yet. Take a look at limiting the looping (e.g. with islice) of
-    # `combinations()` below.
     min_group_size = ceil(num_elements / num_sets)
 
     # At any level of recursion, we deal with all groups up to half the size of the total
@@ -46,24 +42,31 @@ def _stirling(elements: set, num_sets: int, max_group_size=None):
         assert group_size != 0
 
         # The lead group will be all combinations of the current group size
-        for lead_group in islice(combinations(elements, group_size), stirling_count(num_elements, group_size)):
+        for lead_group in combinations(elements, group_size):
             # We use the remaining elements (i.e. those not in the lead group) in the recursion.
             remaining_elements = elements.difference(lead_group)
 
             # If there are remaining elements to be partitions, we recurse.
             if num_sets > 1:
-                for tail_groups in _stirling(remaining_elements, num_sets - 1, group_size):
+                for tail_groups in _stirling(remaining_elements, num_sets - 1,
+                                             group_size):
                     yield (lead_group, ) + tail_groups
+                    to_yield -= 1
+                    if to_yield == 0:
+                        return
 
             # Otherwise we're at the base case and terminate recursion.
             else:
                 yield lead_group,
+                to_yield -= 1
+                if to_yield == 0:
+                    return
 
         group_size -= 1
 
 
 def num_combinations(n, k):
-    "Calculate the number of ways to choose k elements from n." 
+    "Calculate the number of ways to choose k elements from n."
     return factorial(n) / (factorial(k) * factorial(n - k))
 
 
